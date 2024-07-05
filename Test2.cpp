@@ -1,26 +1,55 @@
-#include <ncurses.h>
+#include <SDL2/SDL.h>
 
 int main() {
-  // ncurses initialisieren
-  initscr();
-  cbreak(); // Tastendruck ohne Enter interpretieren
-  noecho(); // Eingaben nicht auf dem Bildschirm anzeigen
+  // Initialisiere SDL
+  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+    std::cerr << "Fehler beim Initialisieren von SDL: " << SDL_GetError() << std::endl;
+    return 1;
+  }
 
-  // Startposition festlegen
-  int x = 10;
-  int y = 10;
+  // Erstelle ein Fenster
+  SDL_Window* window = SDL_CreateWindow("Mein Spiel", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 480, SDL_WINDOW_SHOWN);
+  if (window == nullptr) {
+    std::cerr << "Fehler beim Erstellen des Fensters: " << SDL_GetError() << std::endl;
+    SDL_Quit();
+    return 1;
+  }
 
-  // Text ausgeben
-  mvprintw(y, x, "Hallo Welt!");
+  // Erstelle einen Renderer
+  SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+  if (renderer == nullptr) {
+    std::cerr << "Fehler beim Erstellen des Renderers: " << SDL_GetError() << std::endl;
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return 1;
+  }
 
-  // Terminal aktualisieren
-  refresh();
+  // Haupt-Schleife
+  bool running = true;
+  SDL_Event event;
+  while (running) {
+    while (SDL_PollEvent(&event)) {
+      switch (event.type) {
+        case SDL_QUIT:
+          running = false;
+          break;
+        default:
+          break;
+      }
+    }
 
-  // Wartezeit, bis Benutzer eine Taste drückt
-  getch();
+    // Zeichne etwas auf den Bildschirm
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_RenderClear(renderer);
+    SDL_Rect rect = {100, 100, 200, 200};
+    SDL_RenderFillRect(renderer, &rect);
+    SDL_RenderPresent(renderer);
+  }
 
-  // ncurses beenden
-  endwin();
+  // Gebe die Ressourcen frei
+  SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
+  SDL_Quit();
 
   return 0;
 }
