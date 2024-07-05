@@ -1,39 +1,54 @@
-#include <iostream>
-#include <fstream>
-#include <vector>
-
-using namespace std;
+#include <SDL2/SDL.h>
 
 int main() {
-  // Werte für x und Helligkeit berechnen
-  vector<double> x_values;
-  vector<double> brightness_values;
-
-  for (double x = 0; x <= 10; x += 0.1) {
-    double brightness = x;
-
-    x_values.push_back(x);
-    brightness_values.push_back(brightness);
-  }
-
-  // Daten in eine Datei schreiben
-  ofstream data_file("brightness.dat");
-
-  if (data_file.is_open()) {
-    for (int i = 0; i < x_values.size(); i++) {
-      data_file << x_values[i] << " " << brightness_values[i] << endl;
-    }
-
-    data_file.close();
-  } else {
-    cerr << "Fehler beim Öffnen der Datei" << endl;
+  // SDL initialisieren
+  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
+    SDL_Quit();
     return 1;
   }
 
-  // Gnuplot-Skript erstellen und ausführen
-  string gnuplot_script = "plot 'brightness.dat' with lines";
+  // Fenster erstellen
+  SDL_Window *window = SDL_CreateWindow("Pixel manipulation", 0, 0, 640, 480, SDL_WINDOW_SHOWN);
 
-  system(gnuplot_script.c_str());
+  if (window == nullptr) {
+    SDL_Quit();
+    return 1;
+  }
+
+  // Renderer erstellen
+  SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+
+  if (renderer == nullptr) {
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+    return 1;
+  }
+
+  // Pixel mit RGB-Wert ändern
+  int x = 100;
+  int y = 100;
+  Uint8 r = 255;
+  Uint8 g = 0;
+  Uint8 b = 0;
+
+  SDL_SetRenderDrawColor(renderer, r, g, b);
+  SDL_RenderDrawPoint(renderer, x, y);
+
+  // Fenster aktualisieren
+  SDL_RenderPresent(renderer);
+
+  // Wartezeit, bis Benutzer eine Taste drückt
+  SDL_Event event;
+  while (true) {
+    if (SDL_PollEvent(&event) && event.type == SDL_QUIT) {
+      break;
+    }
+  }
+
+  // Ressourcen freigeben
+  SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
+  SDL_Quit();
 
   return 0;
 }
