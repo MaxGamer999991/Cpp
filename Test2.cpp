@@ -6,33 +6,34 @@ int main() {
   cbreak();
   noecho();
 
-  // Startposition festlegen
-  int x = 10;
-  int y = 10;
+  // Startposition und Ballposition festlegen
+  int x = 10, y = 10;
+  int ball_x = 20, ball_y = 10;
 
-  // Quadrat zeichnen
-  attron(A_COLOR);
-  start_color();
-  init_pair(1, COLOR_RED, COLOR_BLACK);
-  attron(COLOR_PAIR(1));
+  while (true) {
+    // Terminal löschen
+    clear();
 
-  for (int i = 0; i < 5; i++) {
-    for (int j = 0; j < 5; j++) {
-      mvprintw(y + i, x + j, " ");
+    // Ball zeichnen
+    mvprintw(ball_y, ball_x, "O");
+
+    // Spielerposition mit Pfeiltasten steuern
+    int c = getch();
+    switch (c) {
+      case KEY_LEFT:
+        if (x > 0) x--;
+        break;
+      case KEY_RIGHT:
+        if (x < COLS - 1) x++;
+        break;
+      case KEY_UP:
+        if (y > 0) y--;
+        break;
+      case KEY_DOWN:
+        if (y < LINES - 1) y++;
+        break;
+      case 'q':
+        goto end; // Schleife beenden
     }
-  }
 
-  attroff(COLOR_PAIR(1));
-  attroff(A_COLOR);
-
-  // Zeichen aktualisieren
-  refresh();
-
-  // Wartezeit, bis Benutzer eine Taste drückt
-  getch();
-
-  // ncurses beenden
-  endwin();
-
-  return 0;
-}
+    // Spieler
