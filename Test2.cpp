@@ -1,45 +1,38 @@
-#include <stdio.h>
-#include <fcntl.h>
-#include <sys/mman.h>
+#include <ncurses.h>
 
 int main() {
-  // Framebuffer-Datei öffnen
-  int fd = open("/dev/fb0", O_RDWR);
+  // ncurses initialisieren
+  initscr();
+  cbreak();
+  noecho();
 
-  if (fd < 0) {
-    perror("Fehler beim Öffnen des Framebuffers");
-    return 1;
+  // Startposition festlegen
+  int x = 10;
+  int y = 10;
+
+  // Quadrat zeichnen
+  attron(A_COLOR);
+  start_color();
+  init_pair(1, COLOR_RED, COLOR_BLACK);
+  attron(COLOR_PAIR(1));
+
+  for (int i = 0; i < 5; i++) {
+    for (int j = 0; j < 5; j++) {
+      mvprintw(y + i, x + j, " ");
+    }
   }
 
-  // Framebuffer-Größe abrufen
-  struct fb_var_screeninfo screen_info;
-  if (ioctl(fd, FBIOGET_VSCREENINFO, &screen_info) < 0) {
-    perror("Fehler beim Abrufen der Framebuffer-Informationen");
-    close(fd);
-    return 1;
-  }
+  attroff(COLOR_PAIR(1));
+  attroff(A_COLOR);
 
-  // Framebuffer-Speicher in den Speicher mappen
-  void *fbptr = mmap(NULL, screen_info.xsize * screen_info.ysize * screen_info.bits_per_pixel / 8,
-                    PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+  // Zeichen aktualisieren
+  refresh();
 
-  if (fbptr == MAP_FAILED) {
-    perror("Fehler beim Zuordnen des Framebuffers");
-    close(fd);
-    return 1;
-  }
+  // Wartezeit, bis Benutzer eine Taste drückt
+  getch();
 
-  // Rotes Pixel zeichnen
-  unsigned char *pixel = (unsigned char *)fbptr + screen_info.xsize * 100 + 100 * screen_info.bits_per_pixel / 8;
-  *pixel = 0xFF; // Rot
-  *(pixel + 1) = 0x00; // Grün
-  *(pixel + 2) = 0x00; // Blau
-
-  // Framebuffer-Zuordnung aufheben
-  munmap(fbptr, screen_info.xsize * screen_info.ysize * screen_info.bits_per_pixel / 8);
-
-  // Framebuffer-Datei schließen
-  close(fd);
+  // ncurses beenden
+  endwin();
 
   return 0;
 }
